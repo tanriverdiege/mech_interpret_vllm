@@ -119,7 +119,7 @@ def run_patch_resid_post_onlysubj(
 ):
     # Step 1. Get control resid_post
     control_cache = {}
-    hook_control = model.language_model.layers[layer].register_forward_hook(
+    hook_control = model.model.language_model.layers[layer].register_forward_hook(
         cache_resid_post(control_cache)
     )
     with torch.no_grad():
@@ -128,7 +128,7 @@ def run_patch_resid_post_onlysubj(
 
     # Step 2. Get intervene resid_post
     intervene_cache = {}
-    hook_intervene = model.language_model.layers[layer].register_forward_hook(
+    hook_intervene = model.model.language_model.layers[layer].register_forward_hook(
         cache_resid_post(intervene_cache)
     )
     with torch.no_grad():
@@ -142,7 +142,7 @@ def run_patch_resid_post_onlysubj(
     ]
 
     # Step 3. Patch resid_post during control run
-    hook_patch = model.language_model.layers[layer].register_forward_hook(
+    hook_patch = model.model.language_model.layers[layer].register_forward_hook(
         patch_resid_post(patched_cache)
     )
     with torch.no_grad():
