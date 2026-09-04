@@ -31,7 +31,7 @@ cd linear_mech/mirror_attr_swapping/data
 gdown 'https://drive.google.com/file/d/1efplEVOBN-Pas2nXkFPaZeLPHJPflyRq/view?usp=drive_link'
 
 tar xf coco.tar
-mv coco/coco_qa_two_obj.json .
+cd coco
 rm coco.tar  # optional, frees ~1.65GB
 ```
 
