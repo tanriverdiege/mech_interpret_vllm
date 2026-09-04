@@ -191,9 +191,16 @@ for i in range(len(coco_json_data)):
         coco_json_data_leftrightonly.append(coco_json_data[i])
         coco_json_data_leftright_tracker.append("right")
 
+# TODO: Remove the below -------------------------
+coco_json_data_leftrightonly = coco_json_data_leftrightonly[:20]
+coco_json_data_leftright_tracker = coco_json_data_leftright_tracker[:20]
+# --------------- Remove the above ---------------
+
 print("num images:", len(coco_json_data_leftrightonly))
 
-random_indices = random.sample(range(len(coco_json_data_leftrightonly)), 100)
+# TODO: Change the sample amount from 20 to 100 for the final run.
+# For now, we will just use 20 to test the code.
+random_indices = random.sample(range(len(coco_json_data_leftrightonly)), 20)
 coco_json_data_leftrightonly = [coco_json_data_leftrightonly[i] for i in random_indices]
 coco_json_data_leftright_tracker = [
     coco_json_data_leftright_tracker[i] for i in random_indices
@@ -207,35 +214,48 @@ dict_of_all_res = dict()
 for iii, (img_id, caption1, caption2) in tqdm(
     enumerate(coco_json_data_leftrightonly), total=len(coco_json_data_leftrightonly)
 ):
-
+    # Example loop return: img_id = 491497
+    # caption 1 = "A photo of a tv to the left of a couch"
+    # caption 2 = "A photo of a tv to the right of a couch"
     dict_of_all_res[(img_id, coco_json_data_leftright_tracker[iii])] = dict()
 
     image_path = os.path.join(main_img_dir, f"{img_id:012d}.jpg")
 
+    # TODO: This is what we might have to change to see the effects
+    # of CoT prompting.---------------------------------------------
     unified_query, subj1, obj1 = make_unified_query(caption1, caption2)
     unified_query_dict[img_id] = unified_query
-
     text_prompt = "QUESTION: " + unified_query + "Answer left or right. ANSWER: "
+    #----------------------------------------------------------------
+
 
     control_img = Image.open(image_path)
     intervene_img = control_img.transpose(Image.FLIP_LEFT_RIGHT)
 
-    plt.figure()
-    plt.imshow(control_img)
-    plt.savefig(args.save_output_path[:-4] + "_noise_img.png")
-    plt.close()
+    #plt.figure()
+    #plt.imshow(control_img)
+    plt.savefig(os.path.splitext(args.save_output_path)[0] + "_noise_img.png")
+    #plt.close()
     # image_intervene = intervene_img
+
+    # TODO: What happens when you flip the order of text prompt and image? 
+    # Because of attention maybe the text query affects the hidden representations.
 
     DEVICE = next(model.parameters()).device
     prompt = f"<image>\n{text_prompt}"
     inputs = tokenizer(prompt, return_tensors="pt").to(DEVICE)
     tokens = tokenizer.convert_ids_to_tokens(inputs.input_ids[0])
 
-    control_inputs = processor(text=prompt, images=control_img, return_tensors="pt").to(
-        DEVICE
-    )
+    control_inputs = processor(
+            text=prompt,
+            images=control_img,
+            return_tensors="pt"
+        ).to(DEVICE)
+
     intervene_inputs = processor(
-        text=prompt, images=intervene_img, return_tensors="pt"
+        text=prompt,
+        images=intervene_img,
+        return_tensors="pt"
     ).to(DEVICE)
 
     # Tokenize subj1 and obj1 separately to identify their last subtoken
